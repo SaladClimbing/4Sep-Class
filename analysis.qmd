@@ -1,102 +1,52 @@
 ---
-title: "Popular Baby Names in the US"
+title: "Popularity of the Name Andrew"
 author: "Andrew Lucas"
 format: html
-server: shiny
+execute:
+  echo: false
 ---
 
 ```{r}
-#| context: setup
-#| include: false
-library(shiny)
+#| label: setup
+#| message: false
 library(tidyverse)
 
-# Find all baby name text files in the data directory
-files <- list.files("data", pattern = "yob.*\\.txt$", full.names = TRUE)
-
-# Read and combine the data files into a single tibble
-baby_names <- read_csv(
-  files,
-  id = "file",
-  col_names = c("name", "sex", "n"),
-  col_types = "cci",
-  show_col_types = FALSE
-) |>
-  mutate(
-    # Extract the 4-digit year from the filename
-    year = as.integer(str_extract(file, "\\d{4}")),
-    # Use clear labels for gender
-    sex = if_else(sex == "F", "Female", "Male")
-  ) |>
-  select(year, sex, name, n)
-
-# Get sorted list of unique names for the dropdown
-unique_names <- sort(unique(baby_names$name))
+# Read the extracted data for the name Andrew
+andrew_data <- read_csv("Andrew.csv", show_col_types = FALSE)
 ```
 
-```{r}
-#| panel: sidebar
-# Dropdown menu to select a name
-selectizeInput(
-  inputId = "name",
-  label = "Select Name:",
-  choices = NULL
-)
+## Male Andrews Over the Years
 
-# Radio buttons to choose gender
-radioButtons(
-  inputId = "gender",
-  label = "Gender:",
-  choices = c("Male", "Female", "Both"),
-  selected = "Both"
-)
+```{r}
+#| label: male-andrews-plot
+# Filter for male Andrews and plot counts over time
+andrew_data |>
+  filter(sex == "M") |>
+  ggplot(aes(x = year, y = n)) +
+  geom_line(color = "#1f78b4", linewidth = 1) +
+  labs(
+    title = "Popularity of the Name Andrew (Males)",
+    subtitle = "Number of baby boys named Andrew per year in the US (1880–2025)",
+    x = "Year",
+    y = "Number of Babies"
+  ) +
+  theme_minimal()
 ```
 
-```{r}
-#| panel: fill
-# Display the popularity plot
-plotOutput("popularity_plot")
-```
+## Female Andrews
 
 ```{r}
-#| context: server
-# Populate name choices on the server side for fast loading
-updateSelectizeInput(
-  session,
-  "name",
-  choices = unique_names,
-  selected = "Mary",
-  server = TRUE
-)
-
-output$popularity_plot <- renderPlot({
-  req(input$name)
-
-  # Filter data for the selected name
-  plot_data <- baby_names |>
-    filter(name == input$name)
-
-  # Filter by gender if Male or Female is selected
-  if (input$gender != "Both") {
-    plot_data <- plot_data |>
-      filter(sex == input$gender)
-  }
-
-  validate(
-    need(nrow(plot_data) > 0, "No records found for this combination.")
-  )
-
-  # Create the popularity plot
-  ggplot(plot_data, aes(x = year, y = n, color = sex)) +
-    geom_line(linewidth = 1) +
-    scale_color_manual(values = c("Female" = "#E64B35", "Male" = "#4DBBD5")) +
-    labs(
-      title = paste("Popularity of the Name", input$name),
-      subtitle = "Number of babies born per year in the US",
-      x = "Year",
-      y = "Number of Babies",
-      color = "Gender"
-    ) +
-    theme_minimal()
-})
+#| label: female-andrews-plot
+# Filter for female Andrews and plot counts over time
+andrew_data |>
+  filter(sex == "F") |>
+  ggplot(aes(x = year, y = n)) +
+  geom_line(color = "#e7298a", linewidth = 1) +
+  labs(
+    title = "Yes there are female andrews too",
+    subtitle = "Counts rarely exceeded double digits, but they exist!",
+    x = "Year",
+    y = "Number of Babies"
+  ) +
+  theme_minimal()
 ```
