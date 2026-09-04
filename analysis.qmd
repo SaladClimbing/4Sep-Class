@@ -4,12 +4,14 @@ author: "Andrew Lucas"
 format: html
 execute:
   echo: false
+  warning: false
+  message: false
 ---
 
 ```{r}
 #| label: setup
-#| message: false
 library(tidyverse)
+library(plotly)
 
 # Read the extracted data for the name Andrew
 andrew_data <- read_csv("Andrew.csv", show_col_types = FALSE)
@@ -19,34 +21,76 @@ andrew_data <- read_csv("Andrew.csv", show_col_types = FALSE)
 
 ```{r}
 #| label: male-andrews-plot
-# Filter for male Andrews and plot counts over time
-andrew_data |>
-  filter(sex == "M") |>
-  ggplot(aes(x = year, y = n)) +
+# Filter for male Andrews
+male_andrews <- andrew_data |>
+  filter(sex == "M")
+
+# Significant historical data points with context
+male_events <- tibble(
+  year = c(1960, 1987, 1993),
+  n = c(8201, 36206, 27326),
+  label = c(
+    "1960 Spike: Birth of UK Prince Andrew",
+    "1987 Peak: Royal wedding & 80s pop culture",
+    "1993 Dip: Post-Hurricane Andrew (1992)"
+  )
+)
+
+# Plot line, points, and descriptive labels
+p_male <- ggplot(male_andrews, aes(x = year, y = n)) +
   geom_line(color = "#1f78b4", linewidth = 1) +
+  geom_point(data = male_events, aes(x = year, y = n), color = "#e31a1c", size = 2.5) +
+  geom_text(
+    data = male_events,
+    aes(x = year, y = n, label = label),
+    vjust = -1,
+    size = 3
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.15))) +
   labs(
     title = "Popularity of the Name Andrew (Males)",
-    subtitle = "Number of baby boys named Andrew per year in the US (1880–2025)",
     x = "Year",
     y = "Number of Babies"
   ) +
   theme_minimal()
+
+# Wrap in ggplotly to enable interactive hover values
+ggplotly(p_male)
 ```
 
 ## Female Andrews
 
 ```{r}
 #| label: female-andrews-plot
-# Filter for female Andrews and plot counts over time
-andrew_data |>
-  filter(sex == "F") |>
-  ggplot(aes(x = year, y = n)) +
+# Filter for female Andrews
+female_andrews <- andrew_data |>
+  filter(sex == "F")
+
+# Peak year for female Andrews
+female_events <- tibble(
+  year = 1987,
+  n = 223,
+  label = "1987 Peak: Andrew mania spilled into female names!"
+)
+
+# Plot female Andrews with peak label
+p_female <- ggplot(female_andrews, aes(x = year, y = n)) +
   geom_line(color = "#e7298a", linewidth = 1) +
+  geom_point(data = female_events, aes(x = year, y = n), color = "#7570b3", size = 2.5) +
+  geom_text(
+    data = female_events,
+    aes(x = year, y = n, label = label),
+    vjust = -1,
+    size = 3
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.2))) +
   labs(
     title = "Yes there are female andrews too",
-    subtitle = "Counts rarely exceeded double digits, but they exist!",
     x = "Year",
     y = "Number of Babies"
   ) +
   theme_minimal()
+
+# Wrap in ggplotly to enable interactive hover values
+ggplotly(p_female)
 ```
